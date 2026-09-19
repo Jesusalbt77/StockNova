@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
+
 import {
   obtenerCategorias,
   crearCategoria,
   actualizarCategoria,
-  eliminarCategoria,
+  eliminarCategoria
 } from "../services/categoryService";
 
 interface Category {
@@ -26,9 +27,14 @@ function Categories() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const cargarCategorias = async () => {
+  const cargarCategorias = async (
+    mostrarCarga = false
+  ) => {
     try {
-      setLoading(true);
+      if (mostrarCarga) {
+        setLoading(true);
+      }
+
       setError("");
 
       const datos = await obtenerCategorias();
@@ -43,22 +49,29 @@ function Categories() {
 
       setCategorias(categoriasValidas);
     } catch (error: any) {
-      console.error("Error al cargar categorías:", error);
+      console.error(
+        "Error al cargar categorías:",
+        error
+      );
 
       setError(
         error.response?.data?.message ||
           "No se pudieron cargar las categorías."
       );
     } finally {
-      setLoading(false);
+      if (mostrarCarga) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
-    cargarCategorias();
+    cargarCategorias(true);
   }, []);
 
-  const manejarCrear = async (event: React.FormEvent) => {
+  const manejarCrear = async (
+    event: React.FormEvent
+  ) => {
     event.preventDefault();
 
     setError("");
@@ -67,22 +80,43 @@ function Categories() {
     const nombreLimpio = nombre.trim();
 
     if (!nombreLimpio) {
-      setError("El nombre de la categoría es obligatorio.");
+      setError(
+        "El nombre de la categoría es obligatorio."
+      );
       return;
     }
 
     try {
       setSaving(true);
 
-      await crearCategoria(nombreLimpio);
+      const nuevaCategoria =
+        await crearCategoria(nombreLimpio);
 
-      await cargarCategorias();
+      if (
+        nuevaCategoria &&
+        typeof nuevaCategoria.id === "number" &&
+        typeof nuevaCategoria.name === "string"
+      ) {
+        setCategorias(
+          (categoriasActuales) => [
+            ...categoriasActuales,
+            nuevaCategoria
+          ]
+        );
+      } else {
+        await cargarCategorias();
+      }
 
       setNombre("");
 
-      setSuccess("Categoría creada correctamente.");
+      setSuccess(
+        "Categoría creada correctamente."
+      );
     } catch (error: any) {
-      console.error("Error al crear categoría:", error);
+      console.error(
+        "Error al crear categoría:",
+        error
+      );
 
       setError(
         error.response?.data?.message ||
@@ -93,7 +127,9 @@ function Categories() {
     }
   };
 
-  const comenzarEdicion = (categoria: Category) => {
+  const comenzarEdicion = (
+    categoria: Category
+  ) => {
     setError("");
     setSuccess("");
 
@@ -106,29 +142,59 @@ function Categories() {
     setNombreEditado("");
   };
 
-  const guardarEdicion = async (id: number) => {
+  const guardarEdicion = async (
+    id: number
+  ) => {
     setError("");
     setSuccess("");
 
-    const nombreLimpio = nombreEditado.trim();
+    const nombreLimpio =
+      nombreEditado.trim();
 
     if (!nombreLimpio) {
-      setError("El nombre de la categoría es obligatorio.");
+      setError(
+        "El nombre de la categoría es obligatorio."
+      );
       return;
     }
 
     try {
       setSaving(true);
 
-      await actualizarCategoria(id, nombreLimpio);
+      const categoriaActualizada =
+        await actualizarCategoria(
+          id,
+          nombreLimpio
+        );
 
-      await cargarCategorias();
+      if (
+        categoriaActualizada &&
+        typeof categoriaActualizada.id === "number" &&
+        typeof categoriaActualizada.name === "string"
+      ) {
+        setCategorias(
+          (categoriasActuales) =>
+            categoriasActuales.map(
+              (categoria) =>
+                categoria.id === id
+                  ? categoriaActualizada
+                  : categoria
+            )
+        );
+      } else {
+        await cargarCategorias();
+      }
 
       cancelarEdicion();
 
-      setSuccess("Categoría actualizada correctamente.");
+      setSuccess(
+        "Categoría actualizada correctamente."
+      );
     } catch (error: any) {
-      console.error("Error al actualizar categoría:", error);
+      console.error(
+        "Error al actualizar categoría:",
+        error
+      );
 
       setError(
         error.response?.data?.message ||
@@ -139,7 +205,9 @@ function Categories() {
     }
   };
 
-  const manejarEliminar = async (categoria: Category) => {
+  const manejarEliminar = async (
+    categoria: Category
+  ) => {
     setError("");
     setSuccess("");
 
@@ -154,13 +222,27 @@ function Categories() {
     try {
       setSaving(true);
 
-      await eliminarCategoria(categoria.id);
+      await eliminarCategoria(
+        categoria.id
+      );
 
-      await cargarCategorias();
+      setCategorias(
+        (categoriasActuales) =>
+          categoriasActuales.filter(
+            (categoriaActual) =>
+              categoriaActual.id !==
+              categoria.id
+          )
+      );
 
-      setSuccess("Categoría eliminada correctamente.");
+      setSuccess(
+        "Categoría eliminada correctamente."
+      );
     } catch (error: any) {
-      console.error("Error al eliminar categoría:", error);
+      console.error(
+        "Error al eliminar categoría:",
+        error
+      );
 
       setError(
         error.response?.data?.message ||
@@ -171,21 +253,15 @@ function Categories() {
     }
   };
 
-  if (loading) {
-    return (
-      <div>
-        <h1>Categorías</h1>
-        <p>Cargando categorías...</p>
-      </div>
-    );
-  }
-
   return (
     <div>
       <div className="dashboard-header">
         <div>
           <h1>Categorías</h1>
-          <p>Administra las categorías de tus productos.</p>
+          <p>
+            Administra las categorías de tus
+            productos.
+          </p>
         </div>
       </div>
 
@@ -196,7 +272,7 @@ function Categories() {
             padding: "12px 16px",
             borderRadius: "8px",
             background: "#fee2e2",
-            color: "#991b1b",
+            color: "#991b1b"
           }}
         >
           {error}
@@ -210,7 +286,7 @@ function Categories() {
             padding: "12px 16px",
             borderRadius: "8px",
             background: "#dcfce7",
-            color: "#166534",
+            color: "#166534"
           }}
         >
           {success}
@@ -223,17 +299,20 @@ function Categories() {
           padding: "24px",
           borderRadius: "12px",
           marginBottom: "30px",
-          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
+          boxShadow:
+            "0 2px 8px rgba(0, 0, 0, 0.06)"
         }}
       >
-        <h2 style={{ marginTop: 0 }}>Nueva categoría</h2>
+        <h2 style={{ marginTop: 0 }}>
+          Nueva categoría
+        </h2>
 
         <form onSubmit={manejarCrear}>
           <div
             style={{
               display: "flex",
               gap: "12px",
-              flexWrap: "wrap",
+              flexWrap: "wrap"
             }}
           >
             <input
@@ -241,15 +320,20 @@ function Categories() {
               name="nombre"
               type="text"
               value={nombre}
-              onChange={(event) => setNombre(event.target.value)}
+              onChange={(event) =>
+                setNombre(
+                  event.target.value
+                )
+              }
               placeholder="Ej. Electrónica"
               autoComplete="off"
               style={{
                 flex: 1,
                 minWidth: "250px",
                 padding: "11px",
-                borderRadius: "8px",
-                border: "1px solid #d1d5db",
+                border:
+                  "1px solid #d1d5db",
+                borderRadius: "8px"
               }}
             />
 
@@ -260,14 +344,18 @@ function Categories() {
                 padding: "11px 20px",
                 border: "none",
                 borderRadius: "8px",
-                cursor: saving ? "not-allowed" : "pointer",
+                cursor: saving
+                  ? "not-allowed"
+                  : "pointer",
                 background: "#2563eb",
                 color: "white",
                 fontWeight: 600,
-                opacity: saving ? 0.7 : 1,
+                opacity: saving ? 0.7 : 1
               }}
             >
-              {saving ? "Guardando..." : "Crear categoría"}
+              {saving
+                ? "Guardando..."
+                : "Crear categoría"}
             </button>
           </div>
         </form>
@@ -278,19 +366,34 @@ function Categories() {
           background: "white",
           padding: "24px",
           borderRadius: "12px",
-          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
+          boxShadow:
+            "0 2px 8px rgba(0, 0, 0, 0.06)"
         }}
       >
-        <h2 style={{ marginTop: 0 }}>Lista de categorías</h2>
+        <h2 style={{ marginTop: 0 }}>
+          Lista de categorías
+        </h2>
 
-        {categorias.length === 0 ? (
-          <p>Todavía no hay categorías registradas.</p>
+        {loading && categorias.length === 0 ? (
+          <p>
+            Cargando categorías...
+          </p>
+        ) : categorias.length === 0 ? (
+          <p>
+            Todavía no hay categorías
+            registradas.
+          </p>
         ) : (
-          <div style={{ overflowX: "auto" }}>
+          <div
+            style={{
+              overflowX: "auto"
+            }}
+          >
             <table
               style={{
                 width: "100%",
-                borderCollapse: "collapse",
+                borderCollapse:
+                  "collapse"
               }}
             >
               <thead>
@@ -299,7 +402,8 @@ function Categories() {
                     style={{
                       textAlign: "left",
                       padding: "12px",
-                      borderBottom: "1px solid #e5e7eb",
+                      borderBottom:
+                        "1px solid #e5e7eb"
                     }}
                   >
                     ID
@@ -309,7 +413,8 @@ function Categories() {
                     style={{
                       textAlign: "left",
                       padding: "12px",
-                      borderBottom: "1px solid #e5e7eb",
+                      borderBottom:
+                        "1px solid #e5e7eb"
                     }}
                   >
                     Nombre
@@ -319,7 +424,8 @@ function Categories() {
                     style={{
                       textAlign: "left",
                       padding: "12px",
-                      borderBottom: "1px solid #e5e7eb",
+                      borderBottom:
+                        "1px solid #e5e7eb"
                     }}
                   >
                     Acciones
@@ -328,154 +434,221 @@ function Categories() {
               </thead>
 
               <tbody>
-                {categorias.map((categoria) => (
-                  <tr key={categoria.id}>
-                    <td
-                      style={{
-                        padding: "12px",
-                        borderBottom: "1px solid #f3f4f6",
-                      }}
+                {categorias.map(
+                  (categoria) => (
+                    <tr
+                      key={categoria.id}
                     >
-                      {categoria.id}
-                    </td>
+                      <td
+                        style={{
+                          padding: "12px",
+                          borderBottom:
+                            "1px solid #f3f4f6"
+                        }}
+                      >
+                        {categoria.id}
+                      </td>
 
-                    <td
-                      style={{
-                        padding: "12px",
-                        borderBottom: "1px solid #f3f4f6",
-                      }}
-                    >
-                      {categoriaEditando === categoria.id ? (
-                        <input
-                          id={`editar-categoria-${categoria.id}`}
-                          name={`editar-categoria-${categoria.id}`}
-                          type="text"
-                          value={nombreEditado}
-                          onChange={(event) =>
-                            setNombreEditado(event.target.value)
-                          }
-                          autoComplete="off"
-                          style={{
-                            width: "100%",
-                            maxWidth: "300px",
-                            padding: "9px",
-                            borderRadius: "8px",
-                            border: "1px solid #d1d5db",
-                          }}
-                        />
-                      ) : (
-                        categoria.name
-                      )}
-                    </td>
-
-                    <td
-                      style={{
-                        padding: "12px",
-                        borderBottom: "1px solid #f3f4f6",
-                      }}
-                    >
-                      {categoriaEditando === categoria.id ? (
-                        <div
-                          style={{
-                            display: "flex",
-                            gap: "8px",
-                            flexWrap: "wrap",
-                          }}
-                        >
-                          <button
-                            type="button"
-                            onClick={() =>
-                              guardarEdicion(categoria.id)
+                      <td
+                        style={{
+                          padding: "12px",
+                          borderBottom:
+                            "1px solid #f3f4f6"
+                        }}
+                      >
+                        {categoriaEditando ===
+                        categoria.id ? (
+                          <input
+                            id={`editar-categoria-${categoria.id}`}
+                            name={`editar-categoria-${categoria.id}`}
+                            type="text"
+                            value={
+                              nombreEditado
                             }
-                            disabled={saving}
-                            style={{
-                              padding: "8px 12px",
-                              border: "none",
-                              borderRadius: "6px",
-                              cursor: saving
-                                ? "not-allowed"
-                                : "pointer",
-                              background: "#16a34a",
-                              color: "white",
-                              fontWeight: 600,
-                            }}
-                          >
-                            Guardar
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={cancelarEdicion}
-                            disabled={saving}
-                            style={{
-                              padding: "8px 12px",
-                              border: "none",
-                              borderRadius: "6px",
-                              cursor: saving
-                                ? "not-allowed"
-                                : "pointer",
-                              background: "#6b7280",
-                              color: "white",
-                              fontWeight: 600,
-                            }}
-                          >
-                            Cancelar
-                          </button>
-                        </div>
-                      ) : (
-                        <div
-                          style={{
-                            display: "flex",
-                            gap: "8px",
-                            flexWrap: "wrap",
-                          }}
-                        >
-                          <button
-                            type="button"
-                            onClick={() =>
-                              comenzarEdicion(categoria)
+                            onChange={(
+                              event
+                            ) =>
+                              setNombreEditado(
+                                event.target
+                                  .value
+                              )
                             }
-                            disabled={saving}
+                            autoComplete="off"
                             style={{
-                              padding: "8px 12px",
-                              border: "none",
-                              borderRadius: "6px",
-                              cursor: saving
-                                ? "not-allowed"
-                                : "pointer",
-                              background: "#2563eb",
-                              color: "white",
-                              fontWeight: 600,
+                              width: "100%",
+                              maxWidth:
+                                "300px",
+                              padding: "9px",
+                              border:
+                                "1px solid #d1d5db",
+                              borderRadius:
+                                "8px"
                             }}
-                          >
-                            Editar
-                          </button>
+                          />
+                        ) : (
+                          categoria.name
+                        )}
+                      </td>
 
-                          <button
-                            type="button"
-                            onClick={() =>
-                              manejarEliminar(categoria)
-                            }
-                            disabled={saving}
+                      <td
+                        style={{
+                          padding: "12px",
+                          borderBottom:
+                            "1px solid #f3f4f6"
+                        }}
+                      >
+                        {categoriaEditando ===
+                        categoria.id ? (
+                          <div
                             style={{
-                              padding: "8px 12px",
-                              border: "none",
-                              borderRadius: "6px",
-                              cursor: saving
-                                ? "not-allowed"
-                                : "pointer",
-                              background: "#dc2626",
-                              color: "white",
-                              fontWeight: 600,
+                              display:
+                                "flex",
+                              gap: "8px",
+                              flexWrap:
+                                "wrap"
                             }}
                           >
-                            Eliminar
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                guardarEdicion(
+                                  categoria.id
+                                )
+                              }
+                              disabled={
+                                saving
+                              }
+                              style={{
+                                padding:
+                                  "8px 12px",
+                                border:
+                                  "none",
+                                borderRadius:
+                                  "6px",
+                                cursor:
+                                  saving
+                                    ? "not-allowed"
+                                    : "pointer",
+                                background:
+                                  "#16a34a",
+                                color:
+                                  "white",
+                                fontWeight:
+                                  600
+                              }}
+                            >
+                              Guardar
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={
+                                cancelarEdicion
+                              }
+                              disabled={
+                                saving
+                              }
+                              style={{
+                                padding:
+                                  "8px 12px",
+                                border:
+                                  "none",
+                                borderRadius:
+                                  "6px",
+                                cursor:
+                                  saving
+                                    ? "not-allowed"
+                                    : "pointer",
+                                background:
+                                  "#6b7280",
+                                color:
+                                  "white",
+                                fontWeight:
+                                  600
+                              }}
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        ) : (
+                          <div
+                            style={{
+                              display:
+                                "flex",
+                              gap: "8px",
+                              flexWrap:
+                                "wrap"
+                            }}
+                          >
+                            <button
+                              type="button"
+                              onClick={() =>
+                                comenzarEdicion(
+                                  categoria
+                                )
+                              }
+                              disabled={
+                                saving
+                              }
+                              style={{
+                                padding:
+                                  "8px 12px",
+                                border:
+                                  "none",
+                                borderRadius:
+                                  "6px",
+                                cursor:
+                                  saving
+                                    ? "not-allowed"
+                                    : "pointer",
+                                background:
+                                  "#2563eb",
+                                color:
+                                  "white",
+                                fontWeight:
+                                  600
+                              }}
+                            >
+                              Editar
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                manejarEliminar(
+                                  categoria
+                                )
+                              }
+                              disabled={
+                                saving
+                              }
+                              style={{
+                                padding:
+                                  "8px 12px",
+                                border:
+                                  "none",
+                                borderRadius:
+                                  "6px",
+                                cursor:
+                                  saving
+                                    ? "not-allowed"
+                                    : "pointer",
+                                background:
+                                  "#dc2626",
+                                color:
+                                  "white",
+                                fontWeight:
+                                  600
+                              }}
+                            >
+                              Eliminar
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                )}
               </tbody>
             </table>
           </div>

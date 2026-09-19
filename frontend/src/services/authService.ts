@@ -25,8 +25,12 @@ export const iniciarSesion = async (
 
   const datos: LoginResponse = respuesta.data;
 
-  localStorage.setItem("stocknova_token", datos.token);
-  localStorage.setItem(
+  sessionStorage.setItem(
+    "stocknova_token",
+    datos.token
+  );
+
+  sessionStorage.setItem(
     "stocknova_user",
     JSON.stringify(datos.user)
   );
@@ -35,11 +39,15 @@ export const iniciarSesion = async (
 };
 
 export const obtenerToken = (): string | null => {
-  return localStorage.getItem("stocknova_token");
+  return sessionStorage.getItem(
+    "stocknova_token"
+  );
 };
 
 export const obtenerUsuario = (): Usuario | null => {
-  const usuario = localStorage.getItem("stocknova_user");
+  const usuario = sessionStorage.getItem(
+    "stocknova_user"
+  );
 
   if (!usuario) {
     return null;
@@ -49,6 +57,11 @@ export const obtenerUsuario = (): Usuario | null => {
 };
 
 export const cerrarSesion = (): void => {
-  localStorage.removeItem("stocknova_token");
-  localStorage.removeItem("stocknova_user");
+  sessionStorage.removeItem(
+    "stocknova_token"
+  );
+
+  sessionStorage.removeItem(
+    "stocknova_user"
+  );
 };

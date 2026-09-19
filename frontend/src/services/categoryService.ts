@@ -5,28 +5,17 @@ export interface Category {
   name: string;
 }
 
-interface CategoryResponse {
-  success: boolean;
-  message: string;
-  category: Category;
-}
-
 export const obtenerCategorias =
   async (): Promise<Category[]> => {
-    const respuesta = await api.get("/categories");
+    const respuesta =
+      await api.get<Category[]>(
+        "/categories"
+      );
 
     const datos = respuesta.data;
 
     if (Array.isArray(datos)) {
       return datos;
-    }
-
-    if (Array.isArray(datos.categories)) {
-      return datos.categories;
-    }
-
-    if (Array.isArray(datos.data)) {
-      return datos.data;
     }
 
     return [];
@@ -36,14 +25,14 @@ export const crearCategoria = async (
   name: string
 ): Promise<Category> => {
   const respuesta =
-    await api.post<CategoryResponse>(
+    await api.post<Category>(
       "/categories",
       {
         name
       }
     );
 
-  return respuesta.data.category;
+  return respuesta.data;
 };
 
 export const actualizarCategoria = async (
@@ -51,18 +40,20 @@ export const actualizarCategoria = async (
   name: string
 ): Promise<Category> => {
   const respuesta =
-    await api.put<CategoryResponse>(
+    await api.put<Category>(
       `/categories/${id}`,
       {
         name
       }
     );
 
-  return respuesta.data.category;
+  return respuesta.data;
 };
 
 export const eliminarCategoria = async (
   id: number
 ): Promise<void> => {
-  await api.delete(`/categories/${id}`);
+  await api.delete(
+    `/categories/${id}`
+  );
 };
