@@ -25,7 +25,6 @@ export interface CrearProductoData {
   name: string;
   description?: string;
   price: number;
-  stock: number;
   minStock: number;
   categoryId: number;
 }

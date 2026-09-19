@@ -1,4 +1,9 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Outlet
+} from "react-router-dom";
 
 import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
@@ -12,6 +17,24 @@ import Sidebar from "./components/Sidebar";
 import TopBar from "./components/TopBar";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+function LayoutProtegido() {
+  return (
+    <ProtectedRoute>
+      <div className="app">
+        <Sidebar />
+
+        <div className="app-content">
+          <TopBar />
+
+          <main className="main-content">
+            <Outlet />
+          </main>
+        </div>
+      </div>
+    </ProtectedRoute>
+  );
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -21,59 +44,42 @@ function App() {
           element={<Login />}
         />
 
-        <Route
-          path="/*"
-          element={
-            <ProtectedRoute>
-              <div className="app">
-                <Sidebar />
+        <Route element={<LayoutProtegido />}>
+          <Route
+            path="/"
+            element={<Dashboard />}
+          />
 
-                <div className="app-content">
-                  <TopBar />
+          <Route
+            path="/products"
+            element={<Products />}
+          />
 
-                  <main className="main-content">
-                    <Routes>
-                      <Route
-                        path="/"
-                        element={<Dashboard />}
-                      />
+          <Route
+            path="/categories"
+            element={<Categories />}
+          />
 
-                      <Route
-                        path="/products"
-                        element={<Products />}
-                      />
+          <Route
+            path="/inventory"
+            element={<Inventory />}
+          />
 
-                      <Route
-                        path="/categories"
-                        element={<Categories />}
-                      />
+          <Route
+            path="/suppliers"
+            element={<Proveedores />}
+          />
 
-                      <Route
-                        path="/inventory"
-                        element={<Inventory />}
-                      />
+          <Route
+            path="/profile"
+            element={<Profile />}
+          />
 
-                      <Route
-                        path="/suppliers"
-                        element={<Proveedores />}
-                      />
-
-                      <Route
-                        path="/profile"
-                        element={<Profile />}
-                      />
-
-                      <Route
-                        path="*"
-                        element={<Dashboard />}
-                      />
-                    </Routes>
-                  </main>
-                </div>
-              </div>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="*"
+            element={<Dashboard />}
+          />
+        </Route>
       </Routes>
     </BrowserRouter>
   );

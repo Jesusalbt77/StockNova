@@ -27,6 +27,9 @@ function Categories() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const [ordenIdAscendente, setOrdenIdAscendente] =
+    useState(true);
+
   const cargarCategorias = async (
     mostrarCarga = false
   ) => {
@@ -253,6 +256,23 @@ function Categories() {
     }
   };
 
+  const invertirOrdenId = () => {
+    setOrdenIdAscendente(
+      (ordenActual) => !ordenActual
+    );
+  };
+
+  const categoriasOrdenadas = [
+    ...categorias
+  ].sort((a, b) => {
+    const resultado =
+      Number(a.id) - Number(b.id);
+
+    return ordenIdAscendente
+      ? resultado
+      : -resultado;
+  });
+
   return (
     <div>
       <div className="dashboard-header">
@@ -370,9 +390,59 @@ function Categories() {
             "0 2px 8px rgba(0, 0, 0, 0.06)"
         }}
       >
-        <h2 style={{ marginTop: 0 }}>
-          Lista de categorías
-        </h2>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "16px",
+            flexWrap: "wrap",
+            marginBottom: "20px"
+          }}
+        >
+          <h2 style={{ marginTop: 0, marginBottom: 0 }}>
+            Lista de categorías
+          </h2>
+
+          <button
+            type="button"
+            onClick={invertirOrdenId}
+            title={
+              ordenIdAscendente
+                ? "Orden actual: de menor a mayor. Haz clic para invertir."
+                : "Orden actual: de mayor a menor. Haz clic para invertir."
+            }
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              padding: "12px 18px",
+              border: "1px solid #d1d5db",
+              borderRadius: "8px",
+              cursor: "pointer",
+              background: "white",
+              color: "#374151",
+              fontWeight: "600",
+              whiteSpace: "nowrap"
+            }}
+          >
+            <span
+              style={{
+                fontSize: "18px",
+                lineHeight: "1"
+              }}
+            >
+              {ordenIdAscendente
+                ? "↑↓"
+                : "↓↑"}
+            </span>
+
+            <span>
+              Ordenar ID
+            </span>
+          </button>
+        </div>
 
         {loading && categorias.length === 0 ? (
           <p>
@@ -434,7 +504,7 @@ function Categories() {
               </thead>
 
               <tbody>
-                {categorias.map(
+                {categoriasOrdenadas.map(
                   (categoria) => (
                     <tr
                       key={categoria.id}

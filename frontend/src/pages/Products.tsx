@@ -1,4 +1,7 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState
+} from "react";
 
 import type { Product } from "../types/product";
 
@@ -24,6 +27,20 @@ function Products() {
   const [mensaje, setMensaje] = useState("");
 
   const [busqueda, setBusqueda] = useState("");
+  const [filtroCategoria, setFiltroCategoria] = useState("");
+  const [soloStockBajo, setSoloStockBajo] = useState(false);
+
+  /*
+   * =========================================================
+   * ORDENAMIENTO POR ID
+   * =========================================================
+   *
+   * true  = menor a mayor
+   * false = mayor a menor
+   */
+
+  const [ordenIdAscendente, setOrdenIdAscendente] =
+    useState(true);
 
   const [mostrarFormulario, setMostrarFormulario] =
     useState(false);
@@ -37,7 +54,6 @@ function Products() {
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [precio, setPrecio] = useState("");
-  const [stock, setStock] = useState("");
   const [stockMinimo, setStockMinimo] = useState("");
   const [categoriaId, setCategoriaId] = useState("");
 
@@ -74,33 +90,89 @@ function Products() {
     cargarDatos();
   }, []);
 
+  const textoBusqueda =
+    busqueda.trim().toLowerCase();
+
   const productosFiltrados = productos.filter(
     (producto) => {
       const nombreProducto = String(
         producto.name || ""
       ).toLowerCase();
 
-      const textoBusqueda =
-        busqueda.trim().toLowerCase();
+      const coincideBusqueda =
+        nombreProducto.includes(textoBusqueda);
 
-      return nombreProducto.includes(
-        textoBusqueda
+      const coincideCategoria =
+        !filtroCategoria ||
+        producto.categoryId ===
+          Number(filtroCategoria);
+
+      const coincideStockBajo =
+        !soloStockBajo ||
+        producto.stock <= producto.minStock;
+
+      return (
+        coincideBusqueda &&
+        coincideCategoria &&
+        coincideStockBajo
       );
     }
   );
 
-  const limpiarBusqueda = () => {
-    setBusqueda("");
+  const productosOrdenados = [
+    ...productosFiltrados
+  ].sort((a, b) => {
+    const resultado =
+      Number(a.id) - Number(b.id);
+
+    return ordenIdAscendente
+      ? resultado
+      : -resultado;
+  });
+
+  const sugerenciasProductos =
+    textoBusqueda.length > 0
+      ? productos
+          .filter((producto) => {
+            const nombreProducto = String(
+              producto.name || ""
+            ).toLowerCase();
+
+            return nombreProducto.includes(
+              textoBusqueda
+            );
+          })
+          .slice(0, 6)
+      : [];
+
+  const seleccionarProductoDesdeBusqueda = (
+    producto: Product
+  ) => {
+    setBusqueda(producto.name);
   };
 
-  const limpiarFormulario = () => {
-    setNombre("");
-    setDescripcion("");
-    setPrecio("");
-    setStock("");
-    setStockMinimo("");
-    setCategoriaId("");
-    setProductoEditando(null);
+  const obtenerNombreCategoria = (
+    categoriaIdProducto: number
+  ) => {
+    const categoria = categorias.find(
+      (categoriaActual) =>
+        categoriaActual.id ===
+        categoriaIdProducto
+    );
+
+    return categoria?.name || "Sin categoría";
+  };
+
+  const limpiarFiltros = () => {
+    setBusqueda("");
+    setFiltroCategoria("");
+    setSoloStockBajo(false);
+  };
+
+  const invertirOrdenId = () => {
+    setOrdenIdAscendente(
+      (ordenActual) => !ordenActual
+    );
   };
 
   const abrirFormularioCrear = () => {
@@ -111,6 +183,15 @@ function Products() {
     setMostrarFormulario(true);
   };
 
+  const limpiarFormulario = () => {
+    setNombre("");
+    setDescripcion("");
+    setPrecio("");
+    setStockMinimo("");
+    setCategoriaId("");
+    setProductoEditando(null);
+  };
+
   const abrirFormularioEditar = (
     producto: Product
   ) => {
@@ -119,7 +200,6 @@ function Products() {
     setNombre(producto.name);
     setDescripcion(producto.description || "");
     setPrecio(String(producto.price));
-    setStock(String(producto.stock));
     setStockMinimo(String(producto.minStock));
     setCategoriaId(String(producto.categoryId));
 
@@ -134,6 +214,47 @@ function Products() {
     setMostrarFormulario(false);
     setMensaje("");
     setError("");
+  };
+
+  const bloquearCaracteresNoNumericos = (
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (
+      event.key === "e" ||
+      event.key === "E"
+    ) {
+      event.preventDefault();
+    }
+  };
+
+  const manejarCambioPrecio = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const valor = event.target.value;
+
+    if (
+      valor.includes("e") ||
+      valor.includes("E")
+    ) {
+      return;
+    }
+
+    setPrecio(valor);
+  };
+
+  const manejarCambioStockMinimo = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const valor = event.target.value;
+
+    if (
+      valor.includes("e") ||
+      valor.includes("E")
+    ) {
+      return;
+    }
+
+    setStockMinimo(valor);
   };
 
   const manejarGuardarProducto = async (
@@ -152,7 +273,6 @@ function Products() {
         description:
           descripcion.trim() || undefined,
         price: Number(precio),
-        stock: Number(stock),
         minStock: Number(stockMinimo),
         categoryId: Number(categoriaId)
       };
@@ -267,7 +387,7 @@ function Products() {
 
         <p>
           Consulta y administra los productos
-          registrados en Stock Nova. 
+          registrados en Stock Nova.
         </p>
       </div>
 
@@ -276,53 +396,255 @@ function Products() {
           display: "flex",
           gap: "10px",
           marginBottom: "20px",
-          alignItems: "center",
+          alignItems: "flex-start",
           flexWrap: "wrap"
         }}
       >
-        <input
-          type="text"
-          placeholder="Escribe aquí para buscar..."
-          value={busqueda}
+        <div
+          style={{
+            position: "relative",
+            width: "300px"
+          }}
+        >
+          <input
+            type="text"
+            placeholder="Escribe aquí para buscar..."
+            value={busqueda}
+            onChange={(event) =>
+              setBusqueda(event.target.value)
+            }
+            style={{
+              width: "100%",
+              padding: "12px",
+              border: "1px solid #ccc",
+              borderRadius:
+                sugerenciasProductos.length > 0
+                  ? "8px 8px 0 0"
+                  : "8px",
+              outline: "none",
+              boxSizing: "border-box"
+            }}
+          />
+
+          {sugerenciasProductos.length > 0 && (
+            <div
+              style={{
+                position: "absolute",
+                top: "100%",
+                left: 0,
+                right: 0,
+                background: "white",
+                border:
+                  "1px solid #d1d5db",
+                borderTop: "none",
+                borderRadius:
+                  "0 0 8px 8px",
+                boxShadow:
+                  "0 8px 20px rgba(0, 0, 0, 0.12)",
+                zIndex: 20,
+                overflow: "hidden"
+              }}
+            >
+              {sugerenciasProductos.map(
+                (producto) => (
+                  <button
+                    key={producto.id}
+                    type="button"
+                    onClick={() =>
+                      seleccionarProductoDesdeBusqueda(
+                        producto
+                      )
+                    }
+                    style={{
+                      width: "100%",
+                      border: "none",
+                      background: "white",
+                      padding: "12px 14px",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      borderBottom:
+                        "1px solid #f1f5f9"
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontWeight: "700",
+                        color: "#111827",
+                        marginBottom: "4px"
+                      }}
+                    >
+                      📦 {producto.name}
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: "13px",
+                        color: "#6b7280"
+                      }}
+                    >
+                      Stock: {producto.stock} ·{" "}
+                      {obtenerNombreCategoria(
+                        producto.categoryId
+                      )}
+                    </div>
+                  </button>
+                )
+              )}
+            </div>
+          )}
+        </div>
+
+        <select
+          value={filtroCategoria}
           onChange={(event) =>
-            setBusqueda(event.target.value)
+            setFiltroCategoria(
+              event.target.value
+            )
           }
           style={{
-            width: "300px",
             padding: "12px",
             border: "1px solid #ccc",
             borderRadius: "8px",
-            outline: "none"
-          }}
-        />
-
-        <button
-          type="button"
-          onClick={limpiarBusqueda}
-          style={{
-            padding: "12px 18px",
-            border: "none",
-            borderRadius: "8px",
-            cursor: "pointer"
+            minWidth: "200px",
+            background: "white"
           }}
         >
-          Limpiar
-        </button>
+          <option value="">
+            Todas las categorías
+          </option>
+
+          {categorias.map((categoria) => (
+            <option
+              key={categoria.id}
+              value={categoria.id}
+            >
+              {categoria.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* =====================================================
+          BOTONES DE PRODUCTOS
+          LOS TRES BOTONES A LA IZQUIERDA
+          ORDENAR ID A LA DERECHA
+         ===================================================== */}
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "10px",
+          marginBottom: "20px",
+          flexWrap: "wrap"
+        }}
+      >
+        {/* LOS TRES BOTONES — IZQUIERDA */}
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            flexWrap: "wrap"
+          }}
+        >
+          <button
+            type="button"
+            onClick={() =>
+              setSoloStockBajo(
+                (valorActual) => !valorActual
+              )
+            }
+            style={{
+              padding: "12px 18px",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              background: soloStockBajo
+                ? "#f59e0b"
+                : "#e5e7eb",
+              color: soloStockBajo
+                ? "white"
+                : "#374151",
+              fontWeight: "600"
+            }}
+          >
+            {soloStockBajo
+              ? "⚠️ Stock bajo: activado"
+              : "⚠️ Solo stock bajo"}
+          </button>
+
+          <button
+            type="button"
+            onClick={limpiarFiltros}
+            style={{
+              padding: "12px 18px",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer"
+            }}
+          >
+            Limpiar filtros
+          </button>
+
+          <button
+            type="button"
+            onClick={abrirFormularioCrear}
+            style={{
+              padding: "12px 18px",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              background: "#1f2937",
+              color: "white",
+              fontWeight: "bold"
+            }}
+          >
+            Nuevo producto
+          </button>
+        </div>
+
+        {/* BOTÓN ORDENAR ID — DERECHA */}
 
         <button
           type="button"
-          onClick={abrirFormularioCrear}
+          onClick={invertirOrdenId}
+          title={
+            ordenIdAscendente
+              ? "Orden actual: de menor a mayor. Haz clic para invertir."
+              : "Orden actual: de mayor a menor. Haz clic para invertir."
+          }
           style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
             padding: "12px 18px",
-            border: "none",
+            border: "1px solid #d1d5db",
             borderRadius: "8px",
             cursor: "pointer",
-            background: "#1f2937",
-            color: "white",
-            fontWeight: "bold"
+            background: "white",
+            color: "#374151",
+            fontWeight: "600",
+            whiteSpace: "nowrap"
           }}
         >
-          Nuevo producto
+          <span
+            style={{
+              fontSize: "18px",
+              lineHeight: "1"
+            }}
+          >
+            {ordenIdAscendente
+              ? "↑↓"
+              : "↓↑"}
+          </span>
+
+          <span>
+            Ordenar ID
+          </span>
         </button>
       </div>
 
@@ -508,44 +830,11 @@ function Products() {
                   min="0"
                   step="0.01"
                   value={precio}
-                  onChange={(event) =>
-                    setPrecio(
-                      event.target.value
-                    )
+                  onChange={
+                    manejarCambioPrecio
                   }
-                  required
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    border:
-                      "1px solid #d1d5db",
-                    borderRadius: "8px"
-                  }}
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="stock"
-                  style={{
-                    display: "block",
-                    marginBottom: "6px",
-                    fontWeight: "bold"
-                  }}
-                >
-                  Stock
-                </label>
-
-                <input
-                  id="stock"
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={stock}
-                  onChange={(event) =>
-                    setStock(
-                      event.target.value
-                    )
+                  onKeyDown={
+                    bloquearCaracteresNoNumericos
                   }
                   required
                   style={{
@@ -576,10 +865,11 @@ function Products() {
                   min="0"
                   step="1"
                   value={stockMinimo}
-                  onChange={(event) =>
-                    setStockMinimo(
-                      event.target.value
-                    )
+                  onChange={
+                    manejarCambioStockMinimo
+                  }
+                  onKeyDown={
+                    bloquearCaracteresNoNumericos
                   }
                   required
                   style={{
@@ -646,9 +936,30 @@ function Products() {
       )}
 
       <p>
-        Búsqueda actual:{" "}
+        Filtros actuales:{" "}
         <strong>
-          {busqueda || "ninguna"}
+          {busqueda || "sin búsqueda"}
+        </strong>
+        {" · "}
+        <strong>
+          {filtroCategoria
+            ? obtenerNombreCategoria(
+                Number(filtroCategoria)
+              )
+            : "todas las categorías"}
+        </strong>
+        {" · "}
+        <strong>
+          {soloStockBajo
+            ? "solo stock bajo"
+            : "todos los stocks"}
+        </strong>
+        {" · "}
+        <strong>
+          ID{" "}
+          {ordenIdAscendente
+            ? "menor → mayor"
+            : "mayor → menor"}
         </strong>
       </p>
 
@@ -663,7 +974,7 @@ function Products() {
           <p>
             Mostrando{" "}
             <strong>
-              {productosFiltrados.length}
+              {productosOrdenados.length}
             </strong>{" "}
             de{" "}
             <strong>
@@ -672,11 +983,11 @@ function Products() {
             productos.
           </p>
 
-          {productosFiltrados.length === 0 ? (
+          {productosOrdenados.length === 0 ? (
             <p>
               {productos.length === 0
                 ? "No hay productos registrados."
-                : "No se encontraron productos con esa búsqueda."}
+                : "No se encontraron productos con los filtros seleccionados."}
             </p>
           ) : (
             <table className="products-table">
@@ -693,12 +1004,16 @@ function Products() {
               </thead>
 
               <tbody>
-                {productosFiltrados.map(
+                {productosOrdenados.map(
                   (producto) => (
                     <tr key={producto.id}>
-                      <td>{producto.id}</td>
+                      <td>
+                        {producto.id}
+                      </td>
 
-                      <td>{producto.name}</td>
+                      <td>
+                        {producto.name}
+                      </td>
 
                       <td>
                         {producto.description ||
@@ -718,7 +1033,9 @@ function Products() {
                         )}
                       </td>
 
-                      <td>{producto.stock}</td>
+                      <td>
+                        {producto.stock}
+                      </td>
 
                       <td>
                         {producto.minStock}

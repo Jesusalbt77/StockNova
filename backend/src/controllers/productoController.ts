@@ -1,4 +1,3 @@
-
 import { Request, Response } from "express";
 import { prisma } from "../config/prisma";
 
@@ -74,7 +73,6 @@ export const crearProducto = async (
       name,
       description,
       price,
-      stock,
       minStock,
       categoryId
     } = req.body;
@@ -101,17 +99,6 @@ export const crearProducto = async (
       return res.status(400).json({
         success: false,
         message: "El precio debe ser un número mayor que 0"
-      });
-    }
-
-    const stockNumero =
-      stock === undefined ? 0 : Number(stock);
-
-    if (!Number.isInteger(stockNumero) || stockNumero < 0) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "El stock debe ser un número entero mayor o igual a 0"
       });
     }
 
@@ -162,7 +149,7 @@ export const crearProducto = async (
             ? description.trim()
             : null,
         price: precioNumero,
-        stock: stockNumero,
+        stock: 0,
         minStock: stockMinimoNumero,
         categoryId: categoriaIdNumero
       },
@@ -214,7 +201,6 @@ export const actualizarProducto = async (
       name,
       description,
       price,
-      stock,
       minStock,
       categoryId
     } = req.body;
@@ -241,16 +227,6 @@ export const actualizarProducto = async (
       return res.status(400).json({
         success: false,
         message: "El precio debe ser un número mayor que 0"
-      });
-    }
-
-    const stockNumero = Number(stock);
-
-    if (!Number.isInteger(stockNumero) || stockNumero < 0) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "El stock debe ser un número entero mayor o igual a 0"
       });
     }
 
@@ -305,7 +281,6 @@ export const actualizarProducto = async (
               ? description.trim()
               : null,
           price: precioNumero,
-          stock: stockNumero,
           minStock: stockMinimoNumero,
           categoryId: categoriaIdNumero
         },

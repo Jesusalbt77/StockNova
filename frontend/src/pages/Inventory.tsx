@@ -36,6 +36,18 @@ function Inventory() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  /*
+   * =========================================================
+   * ORDENAMIENTO POR ID
+   * =========================================================
+   *
+   * true  = menor a mayor
+   * false = mayor a menor
+   */
+
+  const [ordenIdAscendente, setOrdenIdAscendente] =
+    useState(true);
+
   const cargarDatos = async () => {
     try {
       setLoading(true);
@@ -167,6 +179,23 @@ function Inventory() {
 
     return producto?.name || "Producto desconocido";
   };
+
+  const invertirOrdenId = () => {
+    setOrdenIdAscendente(
+      (ordenActual) => !ordenActual
+    );
+  };
+
+  const movimientosOrdenados = [
+    ...movimientos
+  ].sort((a, b) => {
+    const resultado =
+      Number(a.id) - Number(b.id);
+
+    return ordenIdAscendente
+      ? resultado
+      : -resultado;
+  });
 
   if (loading) {
     return (
@@ -388,11 +417,66 @@ function Inventory() {
             "0 2px 8px rgba(0, 0, 0, 0.06)"
         }}
       >
-        <h2 style={{ marginTop: 0 }}>
-          Historial de movimientos
-        </h2>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "16px",
+            flexWrap: "wrap",
+            marginBottom: "20px"
+          }}
+        >
+          <h2
+            style={{
+              marginTop: 0,
+              marginBottom: 0
+            }}
+          >
+            Historial de movimientos
+          </h2>
 
-        {movimientos.length === 0 ? (
+          <button
+            type="button"
+            onClick={invertirOrdenId}
+            title={
+              ordenIdAscendente
+                ? "Orden actual: de menor a mayor. Haz clic para invertir."
+                : "Orden actual: de mayor a menor. Haz clic para invertir."
+            }
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              padding: "12px 18px",
+              border: "1px solid #d1d5db",
+              borderRadius: "8px",
+              cursor: "pointer",
+              background: "white",
+              color: "#374151",
+              fontWeight: "600",
+              whiteSpace: "nowrap"
+            }}
+          >
+            <span
+              style={{
+                fontSize: "18px",
+                lineHeight: "1"
+              }}
+            >
+              {ordenIdAscendente
+                ? "↑↓"
+                : "↓↑"}
+            </span>
+
+            <span>
+              Ordenar ID
+            </span>
+          </button>
+        </div>
+
+        {movimientosOrdenados.length === 0 ? (
           <p>
             Todavía no hay movimientos de inventario.
           </p>
@@ -410,6 +494,17 @@ function Inventory() {
             >
               <thead>
                 <tr>
+                  <th
+                    style={{
+                      textAlign: "left",
+                      padding: "12px",
+                      borderBottom:
+                        "1px solid #e5e7eb"
+                    }}
+                  >
+                    ID
+                  </th>
+
                   <th
                     style={{
                       textAlign: "left",
@@ -468,67 +563,79 @@ function Inventory() {
               </thead>
 
               <tbody>
-                {movimientos.map((movimiento) => (
-                  <tr key={movimiento.id}>
-                    <td
-                      style={{
-                        padding: "12px",
-                        borderBottom:
-                          "1px solid #f3f4f6"
-                      }}
-                    >
-                      {obtenerNombreProducto(
-                        movimiento
-                      )}
-                    </td>
+                {movimientosOrdenados.map(
+                  (movimiento) => (
+                    <tr key={movimiento.id}>
+                      <td
+                        style={{
+                          padding: "12px",
+                          borderBottom:
+                            "1px solid #f3f4f6"
+                        }}
+                      >
+                        {movimiento.id}
+                      </td>
 
-                    <td
-                      style={{
-                        padding: "12px",
-                        borderBottom:
-                          "1px solid #f3f4f6"
-                      }}
-                    >
-                      {movimiento.type === "ENTRADA" ||
-                      movimiento.type === "entry"
-                        ? "Entrada"
-                        : "Salida"}
-                    </td>
+                      <td
+                        style={{
+                          padding: "12px",
+                          borderBottom:
+                            "1px solid #f3f4f6"
+                        }}
+                      >
+                        {obtenerNombreProducto(
+                          movimiento
+                        )}
+                      </td>
 
-                    <td
-                      style={{
-                        padding: "12px",
-                        borderBottom:
-                          "1px solid #f3f4f6"
-                      }}
-                    >
-                      {movimiento.quantity}
-                    </td>
+                      <td
+                        style={{
+                          padding: "12px",
+                          borderBottom:
+                            "1px solid #f3f4f6"
+                        }}
+                      >
+                        {movimiento.type === "ENTRADA" ||
+                        movimiento.type === "entry"
+                          ? "Entrada"
+                          : "Salida"}
+                      </td>
 
-                    <td
-                      style={{
-                        padding: "12px",
-                        borderBottom:
-                          "1px solid #f3f4f6"
-                      }}
-                    >
-                      {movimiento.user?.name ||
-                        "Usuario"}
-                    </td>
+                      <td
+                        style={{
+                          padding: "12px",
+                          borderBottom:
+                            "1px solid #f3f4f6"
+                        }}
+                      >
+                        {movimiento.quantity}
+                      </td>
 
-                    <td
-                      style={{
-                        padding: "12px",
-                        borderBottom:
-                          "1px solid #f3f4f6"
-                      }}
-                    >
-                      {new Date(
-                        movimiento.createdAt
-                      ).toLocaleString("es-DO")}
-                    </td>
-                  </tr>
-                ))}
+                      <td
+                        style={{
+                          padding: "12px",
+                          borderBottom:
+                            "1px solid #f3f4f6"
+                        }}
+                      >
+                        {movimiento.user?.name ||
+                          "Usuario"}
+                      </td>
+
+                      <td
+                        style={{
+                          padding: "12px",
+                          borderBottom:
+                            "1px solid #f3f4f6"
+                        }}
+                      >
+                        {new Date(
+                          movimiento.createdAt
+                        ).toLocaleString("es-DO")}
+                      </td>
+                    </tr>
+                  )
+                )}
               </tbody>
             </table>
           </div>
