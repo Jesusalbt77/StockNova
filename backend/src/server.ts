@@ -1,18 +1,20 @@
-import inventarioRoutes from "./routes/inventarioRoutes";
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+
 import categoriaRoutes from "./routes/categoriaRoutes";
 import productoRoutes from "./routes/productoRoutes";
+import inventarioRoutes from "./routes/inventarioRoutes";
 import authRoutes from "./routes/authRoutes";
 import dashboardRoutes from "./routes/dashboardRoutes";
 import exchangeRateRoutes from "./routes/exchangeRateRoutes";
+import supplierRoutes from "./routes/supplierRoutes";
 
 dotenv.config();
 
 const app = express();
-app.use(
 
+app.use(
   cors({
     origin: "http://localhost:5173"
   })
@@ -49,6 +51,8 @@ app.use("/api/dashboard", dashboardRoutes);
 // API externa de tasa de cambio
 app.use("/api/exchange-rate", exchangeRateRoutes);
 
+// Rutas de proveedores
+app.use("/api/suppliers", supplierRoutes);
 
 app.listen(PORT, () => {
   console.log(

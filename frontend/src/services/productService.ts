@@ -30,35 +30,27 @@ export interface CrearProductoData {
   categoryId: number;
 }
 
-interface CrearProductoResponse {
-  success: boolean;
-  message: string;
-  product: Product;
-}
-
 export const crearProducto = async (
   producto: CrearProductoData
 ): Promise<Product> => {
-  const respuesta =
-    await api.post<CrearProductoResponse>(
-      "/products",
-      producto
-    );
+  const respuesta = await api.post<Product>(
+    "/products",
+    producto
+  );
 
-  return respuesta.data.product;
+  return respuesta.data;
 };
 
 export const actualizarProducto = async (
   id: number,
   producto: CrearProductoData
 ): Promise<Product> => {
-  const respuesta =
-    await api.put<CrearProductoResponse>(
-      `/products/${id}`,
-      producto
-    );
+  const respuesta = await api.put<Product>(
+    `/products/${id}`,
+    producto
+  );
 
-  return respuesta.data.product;
+  return respuesta.data;
 };
 
 export const eliminarProducto = async (

@@ -5,8 +5,11 @@ import Products from "./pages/Products";
 import Inventory from "./pages/Inventory";
 import Categories from "./pages/Categories";
 import Login from "./pages/Login";
+import Proveedores from "./pages/Proveedores";
+import Profile from "./pages/Profile";
 
 import Sidebar from "./components/Sidebar";
+import TopBar from "./components/TopBar";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -25,34 +28,48 @@ function App() {
               <div className="app">
                 <Sidebar />
 
-                <main className="main-content">
-                  <Routes>
-                    <Route
-                      path="/"
-                      element={<Dashboard />}
-                    />
+                <div className="app-content">
+                  <TopBar />
 
-                    <Route
-                      path="/products"
-                      element={<Products />}
-                    />
+                  <main className="main-content">
+                    <Routes>
+                      <Route
+                        path="/"
+                        element={<Dashboard />}
+                      />
 
-                    <Route
-                      path="/categories"
-                      element={<Categories />}
-                    />
+                      <Route
+                        path="/products"
+                        element={<Products />}
+                      />
 
-                    <Route
-                      path="/inventory"
-                      element={<Inventory />}
-                    />
+                      <Route
+                        path="/categories"
+                        element={<Categories />}
+                      />
 
-                    <Route
-                      path="*"
-                      element={<Dashboard />}
-                    />
-                  </Routes>
-                </main>
+                      <Route
+                        path="/inventory"
+                        element={<Inventory />}
+                      />
+
+                      <Route
+                        path="/suppliers"
+                        element={<Proveedores />}
+                      />
+
+                      <Route
+                        path="/profile"
+                        element={<Profile />}
+                      />
+
+                      <Route
+                        path="*"
+                        element={<Dashboard />}
+                      />
+                    </Routes>
+                  </main>
+                </div>
               </div>
             </ProtectedRoute>
           }
