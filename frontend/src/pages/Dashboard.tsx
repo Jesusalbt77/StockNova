@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 
 import {
   obtenerDashboard,
@@ -15,7 +16,11 @@ function Dashboard() {
   const [error, setError] =
     useState("");
 
+  const location = useLocation();
+
   useEffect(() => {
+    let componenteActivo = true;
+
     const cargarDashboard = async () => {
       try {
         setCargando(true);
@@ -29,23 +34,60 @@ function Dashboard() {
           datosRecibidos
         );
 
-        setDatos(datosRecibidos);
+        if (!componenteActivo) {
+          return;
+        }
+
+        if (
+          datosRecibidos &&
+          typeof datosRecibidos.totalProductos ===
+            "number" &&
+          typeof datosRecibidos.totalCategorias ===
+            "number" &&
+          typeof datosRecibidos.productosStockBajo ===
+            "number" &&
+          typeof datosRecibidos.movimientosInventario ===
+            "number" &&
+          typeof datosRecibidos.valorInventario ===
+            "number"
+        ) {
+          setDatos(datosRecibidos);
+        } else {
+          setError(
+            "Los datos recibidos del dashboard no son válidos."
+          );
+        }
       } catch (error) {
         console.error(
           "Error al obtener dashboard:",
           error
         );
 
+        if (!componenteActivo) {
+          return;
+        }
+
         setError(
           "No se pudieron cargar los datos del dashboard."
         );
       } finally {
-        setCargando(false);
+        if (componenteActivo) {
+          setCargando(false);
+        }
       }
     };
 
     cargarDashboard();
-  }, []);
+
+    return () => {
+      componenteActivo = false;
+    };
+  }, [location.pathname]);
+
+  console.log("RENDER DASHBOARD:", {
+    cargando,
+    datos
+  });
 
   return (
     <div className="dashboard-page">
@@ -106,9 +148,9 @@ function Dashboard() {
           </div>
 
           <div className="stat-value">
-            {cargando
+            {datos === null
               ? "—"
-              : datos?.totalProductos ?? 0}
+              : datos.totalProductos}
           </div>
 
           <p className="stat-description">
@@ -137,9 +179,9 @@ function Dashboard() {
           </div>
 
           <div className="stat-value">
-            {cargando
+            {datos === null
               ? "—"
-              : datos?.totalCategorias ?? 0}
+              : datos.totalCategorias}
           </div>
 
           <p className="stat-description">
@@ -168,9 +210,9 @@ function Dashboard() {
           </div>
 
           <div className="stat-value">
-            {cargando
+            {datos === null
               ? "—"
-              : datos?.productosStockBajo ?? 0}
+              : datos.productosStockBajo}
           </div>
 
           <p className="stat-description">
@@ -199,9 +241,9 @@ function Dashboard() {
           </div>
 
           <div className="stat-value">
-            {cargando
+            {datos === null
               ? "—"
-              : datos?.movimientosInventario ?? 0}
+              : datos.movimientosInventario}
           </div>
 
           <p className="stat-description">
@@ -219,7 +261,9 @@ function Dashboard() {
             strokeWidth="1.8"
           >
             <circle cx="12" cy="12" r="9" />
+
             <path d="M12 7v10" />
+
             <path d="M15 9.5c-.5-1-1.5-1.5-3-1.5s-2.5.7-2.5 1.8c0 2.8 5.5 1.4 5.5 4.2 0 1.2-1 2-2.8 2-1.5 0-2.6-.6-3.2-1.6" />
           </svg>
         </div>
@@ -231,11 +275,9 @@ function Dashboard() {
 
           <h2>
             RD${" "}
-            {cargando
+            {datos === null
               ? "—"
-              : (
-                  datos?.valorInventario ?? 0
-                ).toLocaleString(
+              : datos.valorInventario.toLocaleString(
                   "es-DO",
                   {
                     minimumFractionDigits: 2,
