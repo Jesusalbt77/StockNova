@@ -21,6 +21,8 @@ const Proveedores = () => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
 
+  const [busqueda, setBusqueda] = useState("");
+
   const cargarProveedores = async () => {
     try {
       setLoading(true);
@@ -117,6 +119,28 @@ const Proveedores = () => {
       setError("No se pudo eliminar el proveedor.");
     }
   };
+
+  const textoBusqueda =
+    busqueda.trim().toLowerCase();
+
+  const suppliersFiltrados = suppliers.filter(
+    (supplier) => {
+      const nombreProveedor =
+        String(supplier.name || "").toLowerCase();
+
+      const correoProveedor =
+        String(supplier.email || "").toLowerCase();
+
+      const telefonoProveedor =
+        String(supplier.phone || "").toLowerCase();
+
+      return (
+        nombreProveedor.includes(textoBusqueda) ||
+        correoProveedor.includes(textoBusqueda) ||
+        telefonoProveedor.includes(textoBusqueda)
+      );
+    }
+  );
 
   return (
     <div className="page-container">
@@ -220,55 +244,142 @@ const Proveedores = () => {
             </p>
           </div>
         ) : (
-          <div className="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Nombre</th>
-                  <th>Correo</th>
-                  <th>Teléfono</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
+          <>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "16px",
+                marginBottom: "20px",
+                flexWrap: "wrap"
+              }}
+            >
+              <div>
+                <h2
+                  style={{
+                    margin: 0,
+                    marginBottom: "6px"
+                  }}
+                >
+                  Lista de proveedores
+                </h2>
 
-              <tbody>
-                {suppliers.map((supplier) => (
-                  <tr key={supplier.id}>
-                    <td>{supplier.id}</td>
+                <p
+                  style={{
+                    margin: 0,
+                    color: "#6b7280"
+                  }}
+                >
+                  Mostrando{" "}
+                  <strong>
+                    {suppliersFiltrados.length}
+                  </strong>{" "}
+                  de{" "}
+                  <strong>
+                    {suppliers.length}
+                  </strong>{" "}
+                  proveedores.
+                </p>
+              </div>
 
-                    <td>{supplier.name}</td>
+              <input
+                id="buscar-proveedor"
+                name="buscar-proveedor"
+                type="text"
+                value={busqueda}
+                onChange={(e) =>
+                  setBusqueda(e.target.value)
+                }
+                placeholder="Buscar proveedor..."
+                autoComplete="off"
+                style={{
+                  width: "280px",
+                  maxWidth: "100%",
+                  padding: "11px 12px",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "8px",
+                  outline: "none",
+                  boxSizing: "border-box"
+                }}
+              />
+            </div>
 
-                    <td>
-                      {supplier.email || "No especificado"}
-                    </td>
+            {suppliersFiltrados.length === 0 ? (
+              <div className="empty-state">
+                <h3>
+                  No se encontraron proveedores
+                </h3>
 
-                    <td>
-                      {supplier.phone || "No especificado"}
-                    </td>
+                <p>
+                  No hay proveedores que coincidan
+                  con la búsqueda.
+                </p>
+              </div>
+            ) : (
+              <div className="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Nombre</th>
+                      <th>Correo</th>
+                      <th>Teléfono</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
 
-                    <td>
-                      <button
-                        onClick={() =>
-                          abrirFormularioEditar(supplier)
-                        }
-                      >
-                        Editar
-                      </button>
+                  <tbody>
+                    {suppliersFiltrados.map(
+                      (supplier) => (
+                        <tr key={supplier.id}>
+                          <td>{supplier.id}</td>
 
-                      <button
-                        onClick={() =>
-                          eliminarProveedor(supplier.id)
-                        }
-                      >
-                        Eliminar
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                          <td>{supplier.name}</td>
+
+                          <td>
+                            {supplier.email ||
+                              "No especificado"}
+                          </td>
+
+                          <td>
+                            {supplier.phone ||
+                              "No especificado"}
+                          </td>
+
+                          <td>
+                            <div className="table-actions">
+                              <button
+                                className="supplier-edit-button"
+                                onClick={() =>
+                                  abrirFormularioEditar(
+                                    supplier
+                                  )
+                                }
+                              >
+                                Editar
+                              </button>
+
+                              <button
+                                className="supplier-delete-button"
+                                onClick={() =>
+                                  eliminarProveedor(
+                                    supplier.id
+                                  )
+                                }
+                              >
+                                Eliminar
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

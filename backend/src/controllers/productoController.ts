@@ -304,12 +304,8 @@ export const eliminarProducto = async (
   req: Request,
   res: Response
 ) => {
-  console.log(">>> ELIMINAR PRODUCTO EJECUTADO <<<");
-
   try {
     const id = Number(req.params.id);
-
-    console.log(">>> ID RECIBIDO:", id);
 
     if (!Number.isInteger(id) || id <= 0) {
       return res.status(400).json({
@@ -323,11 +319,6 @@ export const eliminarProducto = async (
         id
       }
     });
-
-    console.log(
-      ">>> PRODUCTO ENCONTRADO:",
-      producto
-    );
 
     if (!producto) {
       return res.status(404).json({
@@ -343,11 +334,6 @@ export const eliminarProducto = async (
         }
       });
 
-    console.log(
-      ">>> MOVIMIENTOS ENCONTRADOS:",
-      movimientos
-    );
-
     if (movimientos > 0) {
       return res.status(409).json({
         success: false,
@@ -362,17 +348,13 @@ export const eliminarProducto = async (
       }
     });
 
-    console.log(
-      ">>> PRODUCTO ELIMINADO CORRECTAMENTE <<<"
-    );
-
     res.json({
       success: true,
       message: "Producto eliminado correctamente"
     });
   } catch (error) {
     console.error(
-      ">>> ERROR REAL AL ELIMINAR PRODUCTO:",
+      "Error al eliminar producto:",
       error
     );
 

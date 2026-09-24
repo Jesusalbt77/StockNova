@@ -1,4 +1,3 @@
-
 import { Router } from "express";
 
 import {
@@ -39,18 +38,6 @@ router.put(
   "/change-password",
   autenticar,
   cambiarContraseña
-);
-
-// Ruta temporal de prueba
-router.get(
-  "/test-change-password",
-  (req, res) => {
-    res.json({
-      success: true,
-      message:
-        "La ruta de autenticación está funcionando correctamente"
-    });
-  }
 );
 
 export default router;

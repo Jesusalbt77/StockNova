@@ -36,6 +36,11 @@ function Inventory() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const [busqueda, setBusqueda] = useState("");
+
+  const [filtroTipoMovimiento, setFiltroTipoMovimiento] =
+    useState<"all" | "entry" | "exit">("all");
+
   /*
    * =========================================================
    * ORDENAMIENTO POR ID
@@ -186,8 +191,66 @@ function Inventory() {
     );
   };
 
+  const textoBusqueda =
+    busqueda.trim().toLowerCase();
+
+  const movimientosFiltrados =
+    movimientos.filter(
+      (movimiento) => {
+        const nombreProducto =
+          obtenerNombreProducto(
+            movimiento
+          )
+            .toLowerCase();
+
+        const nombreUsuario =
+          String(
+            movimiento.user?.name || ""
+          ).toLowerCase();
+
+        const correoUsuario =
+          String(
+            movimiento.user?.email || ""
+          ).toLowerCase();
+
+        const coincideBusqueda =
+          nombreProducto.includes(
+            textoBusqueda
+          ) ||
+          nombreUsuario.includes(
+            textoBusqueda
+          ) ||
+          correoUsuario.includes(
+            textoBusqueda
+          );
+
+        const tipoMovimiento =
+          movimiento.type.toLowerCase();
+
+        const esEntrada =
+          tipoMovimiento === "entry" ||
+          tipoMovimiento === "entrada";
+
+        const esSalida =
+          tipoMovimiento === "exit" ||
+          tipoMovimiento === "salida";
+
+        const coincideTipo =
+          filtroTipoMovimiento === "all" ||
+          (filtroTipoMovimiento === "entry" &&
+            esEntrada) ||
+          (filtroTipoMovimiento === "exit" &&
+            esSalida);
+
+        return (
+          coincideBusqueda &&
+          coincideTipo
+        );
+      }
+    );
+
   const movimientosOrdenados = [
-    ...movimientos
+    ...movimientosFiltrados
   ].sort((a, b) => {
     const resultado =
       Number(a.id) - Number(b.id);
@@ -197,11 +260,18 @@ function Inventory() {
       : -resultado;
   });
 
+  const limpiarFiltros = () => {
+    setBusqueda("");
+    setFiltroTipoMovimiento("all");
+  };
+
   if (loading) {
     return (
       <div>
         <h1>Inventario</h1>
-        <p>Cargando información del inventario...</p>
+        <p>
+          Cargando información del inventario...
+        </p>
       </div>
     );
   }
@@ -427,59 +497,177 @@ function Inventory() {
             marginBottom: "20px"
           }}
         >
-          <h2
-            style={{
-              marginTop: 0,
-              marginBottom: 0
-            }}
-          >
-            Historial de movimientos
-          </h2>
+          <div>
+            <h2
+              style={{
+                marginTop: 0,
+                marginBottom: "6px"
+              }}
+            >
+              Historial de movimientos
+            </h2>
 
-          <button
-            type="button"
-            onClick={invertirOrdenId}
-            title={
-              ordenIdAscendente
-                ? "Orden actual: de menor a mayor. Haz clic para invertir."
-                : "Orden actual: de mayor a menor. Haz clic para invertir."
-            }
+            <p
+              style={{
+                margin: 0,
+                color: "#6b7280"
+              }}
+            >
+              Mostrando{" "}
+              <strong>
+                {movimientosOrdenados.length}
+              </strong>{" "}
+              de{" "}
+              <strong>
+                {movimientos.length}
+              </strong>{" "}
+              movimientos.
+            </p>
+          </div>
+
+          <div
             style={{
               display: "flex",
               alignItems: "center",
-              justifyContent: "center",
-              gap: "8px",
-              padding: "12px 18px",
-              border: "1px solid #d1d5db",
-              borderRadius: "8px",
-              cursor: "pointer",
-              background: "white",
-              color: "#374151",
-              fontWeight: "600",
-              whiteSpace: "nowrap"
+              gap: "10px",
+              flexWrap: "wrap"
             }}
           >
-            <span
+            <input
+              id="buscar-movimiento"
+              name="buscar-movimiento"
+              type="text"
+              value={busqueda}
+              onChange={(event) =>
+                setBusqueda(
+                  event.target.value
+                )
+              }
+              placeholder="Buscar producto o usuario..."
+              autoComplete="off"
               style={{
-                fontSize: "18px",
-                lineHeight: "1"
+                width: "280px",
+                maxWidth: "100%",
+                padding: "11px 12px",
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
+                outline: "none",
+                boxSizing: "border-box"
+              }}
+            />
+
+            <select
+              id="filtro-tipo-movimiento"
+              name="filtro-tipo-movimiento"
+              value={filtroTipoMovimiento}
+              onChange={(event) =>
+                setFiltroTipoMovimiento(
+                  event.target.value as
+                    | "all"
+                    | "entry"
+                    | "exit"
+                )
+              }
+              style={{
+                padding: "11px 12px",
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
+                background: "white",
+                color: "#374151"
               }}
             >
-              {ordenIdAscendente
-                ? "↑↓"
-                : "↓↑"}
-            </span>
+              <option value="all">
+                Todos los movimientos
+              </option>
 
-            <span>
-              Ordenar ID
-            </span>
-          </button>
+              <option value="entry">
+                Solo entradas
+              </option>
+
+              <option value="exit">
+                Solo salidas
+              </option>
+            </select>
+
+            {(busqueda ||
+              filtroTipoMovimiento !== "all") && (
+              <button
+                type="button"
+                onClick={limpiarFiltros}
+                style={{
+                  padding: "11px 16px",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  background: "white",
+                  color: "#374151",
+                  fontWeight: 600
+                }}
+              >
+                Limpiar filtros
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={invertirOrdenId}
+              title={
+                ordenIdAscendente
+                  ? "Orden actual: de menor a mayor. Haz clic para invertir."
+                  : "Orden actual: de mayor a menor. Haz clic para invertir."
+              }
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                padding: "12px 18px",
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
+                cursor: "pointer",
+                background: "white",
+                color: "#374151",
+                fontWeight: "600",
+                whiteSpace: "nowrap"
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "18px",
+                  lineHeight: "1"
+                }}
+              >
+                {ordenIdAscendente
+                  ? "↑↓"
+                  : "↓↑"}
+              </span>
+
+              <span>
+                Ordenar ID
+              </span>
+            </button>
+          </div>
         </div>
 
         {movimientosOrdenados.length === 0 ? (
-          <p>
-            Todavía no hay movimientos de inventario.
-          </p>
+          <div>
+            {movimientos.length === 0 ? (
+              <p>
+                Todavía no hay movimientos de inventario.
+              </p>
+            ) : (
+              <div className="empty-state">
+                <h3>
+                  No se encontraron movimientos
+                </h3>
+
+                <p>
+                  No hay movimientos que coincidan
+                  con los filtros seleccionados.
+                </p>
+              </div>
+            )}
+          </div>
         ) : (
           <div
             style={{

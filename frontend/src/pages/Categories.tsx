@@ -27,6 +27,8 @@ function Categories() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const [busqueda, setBusqueda] = useState("");
+
   const [ordenIdAscendente, setOrdenIdAscendente] =
     useState(true);
 
@@ -262,8 +264,25 @@ function Categories() {
     );
   };
 
+  const textoBusqueda =
+    busqueda.trim().toLowerCase();
+
+  const categoriasFiltradas =
+    categorias.filter(
+      (categoria) => {
+        const nombreCategoria =
+          categoria.name
+            .trim()
+            .toLowerCase();
+
+        return nombreCategoria.includes(
+          textoBusqueda
+        );
+      }
+    );
+
   const categoriasOrdenadas = [
-    ...categorias
+    ...categoriasFiltradas
   ].sort((a, b) => {
     const resultado =
       Number(a.id) - Number(b.id);
@@ -404,44 +423,76 @@ function Categories() {
             Lista de categorías
           </h2>
 
-          <button
-            type="button"
-            onClick={invertirOrdenId}
-            title={
-              ordenIdAscendente
-                ? "Orden actual: de menor a mayor. Haz clic para invertir."
-                : "Orden actual: de mayor a menor. Haz clic para invertir."
-            }
+          <div
             style={{
               display: "flex",
               alignItems: "center",
-              justifyContent: "center",
-              gap: "8px",
-              padding: "12px 18px",
-              border: "1px solid #d1d5db",
-              borderRadius: "8px",
-              cursor: "pointer",
-              background: "white",
-              color: "#374151",
-              fontWeight: "600",
-              whiteSpace: "nowrap"
+              gap: "10px",
+              flexWrap: "wrap"
             }}
           >
-            <span
+            <input
+              id="buscar-categoria"
+              name="buscar-categoria"
+              type="text"
+              value={busqueda}
+              onChange={(event) =>
+                setBusqueda(
+                  event.target.value
+                )
+              }
+              placeholder="Buscar categoría..."
+              autoComplete="off"
               style={{
-                fontSize: "18px",
-                lineHeight: "1"
+                width: "240px",
+                padding: "11px 12px",
+                border:
+                  "1px solid #d1d5db",
+                borderRadius: "8px",
+                outline: "none",
+                boxSizing: "border-box"
+              }}
+            />
+
+            <button
+              type="button"
+              onClick={invertirOrdenId}
+              title={
+                ordenIdAscendente
+                  ? "Orden actual: de menor a mayor. Haz clic para invertir."
+                  : "Orden actual: de mayor a menor. Haz clic para invertir."
+              }
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                padding: "12px 18px",
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
+                cursor: "pointer",
+                background: "white",
+                color: "#374151",
+                fontWeight: "600",
+                whiteSpace: "nowrap"
               }}
             >
-              {ordenIdAscendente
-                ? "↑↓"
-                : "↓↑"}
-            </span>
+              <span
+                style={{
+                  fontSize: "18px",
+                  lineHeight: "1"
+                }}
+              >
+                {ordenIdAscendente
+                  ? "↑↓"
+                  : "↓↑"}
+              </span>
 
-            <span>
-              Ordenar ID
-            </span>
-          </button>
+              <span>
+                Ordenar ID
+              </span>
+            </button>
+          </div>
         </div>
 
         {loading && categorias.length === 0 ? (
@@ -459,268 +510,275 @@ function Categories() {
               overflowX: "auto"
             }}
           >
-            <table
-              style={{
-                width: "100%",
-                borderCollapse:
-                  "collapse"
-              }}
-            >
-              <thead>
-                <tr>
-                  <th
-                    style={{
-                      textAlign: "left",
-                      padding: "12px",
-                      borderBottom:
-                        "1px solid #e5e7eb"
-                    }}
-                  >
-                    ID
-                  </th>
-
-                  <th
-                    style={{
-                      textAlign: "left",
-                      padding: "12px",
-                      borderBottom:
-                        "1px solid #e5e7eb"
-                    }}
-                  >
-                    Nombre
-                  </th>
-
-                  <th
-                    style={{
-                      textAlign: "left",
-                      padding: "12px",
-                      borderBottom:
-                        "1px solid #e5e7eb"
-                    }}
-                  >
-                    Acciones
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {categoriasOrdenadas.map(
-                  (categoria) => (
-                    <tr
-                      key={categoria.id}
+            {categoriasOrdenadas.length === 0 ? (
+              <p>
+                No se encontraron categorías
+                con esa búsqueda.
+              </p>
+            ) : (
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse:
+                    "collapse"
+                }}
+              >
+                <thead>
+                  <tr>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "12px",
+                        borderBottom:
+                          "1px solid #e5e7eb"
+                      }}
                     >
-                      <td
-                        style={{
-                          padding: "12px",
-                          borderBottom:
-                            "1px solid #f3f4f6"
-                        }}
-                      >
-                        {categoria.id}
-                      </td>
+                      ID
+                    </th>
 
-                      <td
-                        style={{
-                          padding: "12px",
-                          borderBottom:
-                            "1px solid #f3f4f6"
-                        }}
-                      >
-                        {categoriaEditando ===
-                        categoria.id ? (
-                          <input
-                            id={`editar-categoria-${categoria.id}`}
-                            name={`editar-categoria-${categoria.id}`}
-                            type="text"
-                            value={
-                              nombreEditado
-                            }
-                            onChange={(
-                              event
-                            ) =>
-                              setNombreEditado(
-                                event.target
-                                  .value
-                              )
-                            }
-                            autoComplete="off"
-                            style={{
-                              width: "100%",
-                              maxWidth:
-                                "300px",
-                              padding: "9px",
-                              border:
-                                "1px solid #d1d5db",
-                              borderRadius:
-                                "8px"
-                            }}
-                          />
-                        ) : (
-                          categoria.name
-                        )}
-                      </td>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "12px",
+                        borderBottom:
+                          "1px solid #e5e7eb"
+                      }}
+                    >
+                      Nombre
+                    </th>
 
-                      <td
-                        style={{
-                          padding: "12px",
-                          borderBottom:
-                            "1px solid #f3f4f6"
-                        }}
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "12px",
+                        borderBottom:
+                          "1px solid #e5e7eb"
+                      }}
+                    >
+                      Acciones
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {categoriasOrdenadas.map(
+                    (categoria) => (
+                      <tr
+                        key={categoria.id}
                       >
-                        {categoriaEditando ===
-                        categoria.id ? (
-                          <div
-                            style={{
-                              display:
-                                "flex",
-                              gap: "8px",
-                              flexWrap:
-                                "wrap"
-                            }}
-                          >
-                            <button
-                              type="button"
-                              onClick={() =>
-                                guardarEdicion(
-                                  categoria.id
+                        <td
+                          style={{
+                            padding: "12px",
+                            borderBottom:
+                              "1px solid #f3f4f6"
+                          }}
+                        >
+                          {categoria.id}
+                        </td>
+
+                        <td
+                          style={{
+                            padding: "12px",
+                            borderBottom:
+                              "1px solid #f3f4f6"
+                          }}
+                        >
+                          {categoriaEditando ===
+                          categoria.id ? (
+                            <input
+                              id={`editar-categoria-${categoria.id}`}
+                              name={`editar-categoria-${categoria.id}`}
+                              type="text"
+                              value={
+                                nombreEditado
+                              }
+                              onChange={(
+                                event
+                              ) =>
+                                setNombreEditado(
+                                  event.target
+                                    .value
                                 )
                               }
-                              disabled={
-                                saving
-                              }
+                              autoComplete="off"
                               style={{
-                                padding:
-                                  "8px 12px",
+                                width: "100%",
+                                maxWidth:
+                                  "300px",
+                                padding: "9px",
                                 border:
-                                  "none",
+                                  "1px solid #d1d5db",
                                 borderRadius:
-                                  "6px",
-                                cursor:
-                                  saving
-                                    ? "not-allowed"
-                                    : "pointer",
-                                background:
-                                  "#16a34a",
-                                color:
-                                  "white",
-                                fontWeight:
-                                  600
+                                  "8px"
                               }}
-                            >
-                              Guardar
-                            </button>
+                            />
+                          ) : (
+                            categoria.name
+                          )}
+                        </td>
 
-                            <button
-                              type="button"
-                              onClick={
-                                cancelarEdicion
-                              }
-                              disabled={
-                                saving
-                              }
+                        <td
+                          style={{
+                            padding: "12px",
+                            borderBottom:
+                              "1px solid #f3f4f6"
+                          }}
+                        >
+                          {categoriaEditando ===
+                          categoria.id ? (
+                            <div
                               style={{
-                                padding:
-                                  "8px 12px",
-                                border:
-                                  "none",
-                                borderRadius:
-                                  "6px",
-                                cursor:
-                                  saving
-                                    ? "not-allowed"
-                                    : "pointer",
-                                background:
-                                  "#6b7280",
-                                color:
-                                  "white",
-                                fontWeight:
-                                  600
+                                display:
+                                  "flex",
+                                gap: "8px",
+                                flexWrap:
+                                  "wrap"
                               }}
                             >
-                              Cancelar
-                            </button>
-                          </div>
-                        ) : (
-                          <div
-                            style={{
-                              display:
-                                "flex",
-                              gap: "8px",
-                              flexWrap:
-                                "wrap"
-                            }}
-                          >
-                            <button
-                              type="button"
-                              onClick={() =>
-                                comenzarEdicion(
-                                  categoria
-                                )
-                              }
-                              disabled={
-                                saving
-                              }
-                              style={{
-                                padding:
-                                  "8px 12px",
-                                border:
-                                  "none",
-                                borderRadius:
-                                  "6px",
-                                cursor:
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  guardarEdicion(
+                                    categoria.id
+                                  )
+                                }
+                                disabled={
                                   saving
-                                    ? "not-allowed"
-                                    : "pointer",
-                                background:
-                                  "#2563eb",
-                                color:
-                                  "white",
-                                fontWeight:
-                                  600
-                              }}
-                            >
-                              Editar
-                            </button>
+                                }
+                                style={{
+                                  padding:
+                                    "8px 12px",
+                                  border:
+                                    "none",
+                                  borderRadius:
+                                    "6px",
+                                  cursor:
+                                    saving
+                                      ? "not-allowed"
+                                      : "pointer",
+                                  background:
+                                    "#16a34a",
+                                  color:
+                                    "white",
+                                  fontWeight:
+                                    600
+                                }}
+                              >
+                                Guardar
+                              </button>
 
-                            <button
-                              type="button"
-                              onClick={() =>
-                                manejarEliminar(
-                                  categoria
-                                )
-                              }
-                              disabled={
-                                saving
-                              }
-                              style={{
-                                padding:
-                                  "8px 12px",
-                                border:
-                                  "none",
-                                borderRadius:
-                                  "6px",
-                                cursor:
+                              <button
+                                type="button"
+                                onClick={
+                                  cancelarEdicion
+                                }
+                                disabled={
                                   saving
-                                    ? "not-allowed"
-                                    : "pointer",
-                                background:
-                                  "#dc2626",
-                                color:
-                                  "white",
-                                fontWeight:
-                                  600
+                                }
+                                style={{
+                                  padding:
+                                    "8px 12px",
+                                  border:
+                                    "none",
+                                  borderRadius:
+                                    "6px",
+                                  cursor:
+                                    saving
+                                      ? "not-allowed"
+                                      : "pointer",
+                                  background:
+                                    "#6b7280",
+                                  color:
+                                    "white",
+                                  fontWeight:
+                                    600
+                                }}
+                              >
+                                Cancelar
+                              </button>
+                            </div>
+                          ) : (
+                            <div
+                              style={{
+                                display:
+                                  "flex",
+                                gap: "8px",
+                                flexWrap:
+                                  "wrap"
                               }}
                             >
-                              Eliminar
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  )
-                )}
-              </tbody>
-            </table>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  comenzarEdicion(
+                                    categoria
+                                  )
+                                }
+                                disabled={
+                                  saving
+                                }
+                                style={{
+                                  padding:
+                                    "8px 12px",
+                                  border:
+                                    "none",
+                                  borderRadius:
+                                    "6px",
+                                  cursor:
+                                    saving
+                                      ? "not-allowed"
+                                      : "pointer",
+                                  background:
+                                    "#2563eb",
+                                  color:
+                                    "white",
+                                  fontWeight:
+                                    600
+                                }}
+                              >
+                                Editar
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  manejarEliminar(
+                                    categoria
+                                  )
+                                }
+                                disabled={
+                                  saving
+                                }
+                                style={{
+                                  padding:
+                                    "8px 12px",
+                                  border:
+                                    "none",
+                                  borderRadius:
+                                    "6px",
+                                  cursor:
+                                    saving
+                                      ? "not-allowed"
+                                      : "pointer",
+                                  background:
+                                    "#dc2626",
+                                  color:
+                                    "white",
+                                  fontWeight:
+                                    600
+                                }}
+                              >
+                                Eliminar
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         )}
       </div>

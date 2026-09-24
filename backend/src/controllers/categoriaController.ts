@@ -61,6 +61,14 @@ export const crearCategoria = async (
       });
     }
 
+    if (nombreLimpio.length > 100) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "El nombre de la categoría no puede superar los 100 caracteres"
+      });
+    }
+
     const categoriaExistente =
       await prisma.category.findUnique({
         where: {
@@ -111,7 +119,10 @@ export const actualizarCategoria = async (
     const id = Number(req.params.id);
     const { name } = req.body;
 
-    if (isNaN(id)) {
+    if (
+      !Number.isInteger(id) ||
+      id <= 0
+    ) {
       return res.status(400).json({
         success: false,
         message:
@@ -137,6 +148,47 @@ export const actualizarCategoria = async (
         success: false,
         message:
           "El nombre de la categoría no puede estar vacío"
+      });
+    }
+
+    if (nombreLimpio.length > 100) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "El nombre de la categoría no puede superar los 100 caracteres"
+      });
+    }
+
+    const categoriaExistente =
+      await prisma.category.findUnique({
+        where: {
+          id
+        }
+      });
+
+    if (!categoriaExistente) {
+      return res.status(404).json({
+        success: false,
+        message:
+          "La categoría no existe"
+      });
+    }
+
+    const categoriaConEseNombre =
+      await prisma.category.findUnique({
+        where: {
+          name: nombreLimpio
+        }
+      });
+
+    if (
+      categoriaConEseNombre &&
+      categoriaConEseNombre.id !== id
+    ) {
+      return res.status(409).json({
+        success: false,
+        message:
+          "La categoría ya existe"
       });
     }
 
@@ -177,7 +229,10 @@ export const eliminarCategoria = async (
   try {
     const id = Number(req.params.id);
 
-    if (isNaN(id)) {
+    if (
+      !Number.isInteger(id) ||
+      id <= 0
+    ) {
       return res.status(400).json({
         success: false,
         message:
